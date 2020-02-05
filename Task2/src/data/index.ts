@@ -7,4 +7,3 @@ const DAL = {
 };
 
 export default DAL;
-export default DAL;
