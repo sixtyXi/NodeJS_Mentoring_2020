@@ -5,7 +5,7 @@ import {
     createValidator
 } from "express-joi-validation";
 
-const validator = createValidator()
+const validator = createValidator();
 
 const bodySchema = Joi.object({
     login: Joi.string().required(),

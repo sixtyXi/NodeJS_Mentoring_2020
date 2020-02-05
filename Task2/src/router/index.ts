@@ -1,30 +1,21 @@
 import * as express from "express";
 
 import { userController, userValidationMiddleware } from "../logic";
+import { routes } from "../constants";
 
 const router = express.Router();
 
 router
-    .route("/user")
+    .route(routes.users)
+    .get(userController.get)
     .post(userValidationMiddleware, userController.addOrUpdate)
-    .put(userValidationMiddleware, userController.addOrUpdate)
-    .get();
+    .all((req, res) => res.status(405).send("Avalable methods: GET, POST"));
 
 router
-    .route("/user/:id")
+    .route(`${routes.users}/:id`)
     .get(userController.getById)
-    .delete(userController.softDelete);
-
-router
-    .route("/users/:limit/:substr")
-    .get(userController.get);
-
-router
-    .route("/users/:limit")
-    .get(userController.get);
-
-router
-    .route("/users")
-    .get(userController.get);
+    .put(userValidationMiddleware, userController.addOrUpdate)
+    .delete(userController.remove)
+    .all((req, res) => res.status(405).send("Avalable methods: GET, PUT, DELETE"));
 
 export default router;

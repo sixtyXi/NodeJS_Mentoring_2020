@@ -1,68 +1,65 @@
-import * as uuid from "uuid";
 import { RequestHandler } from "express";
 import { ValidatedRequest } from "express-joi-validation";
 
-import { getAutoSuggestUsers, users } from "../../data";
-import { User } from "../../types";
 import { UserSchema } from "../validation";
+import DAL, { User } from "../../data";
 
 const addOrUpdate: RequestHandler = (req: ValidatedRequest<UserSchema>, res) => {
     const user: User = req.body as User;
+    const id: string = req.params.id;
 
-    if (user.id == null) {
-        user.id = uuid(user);
-        user.isDeleted = false;
-        users.push(user);
-        res.status(200).json(user);
+    if (!id) {
+        const newUser = DAL.user.add(user);
+
+        res.status(200).json(newUser);
     } else {
-        const index = users.findIndex(x => x.id === user.id);
+        const updatedUser = DAL.user.update(user);
 
-        if (index === -1) {
-            res.status(404).send("User to update not found");
+        if (!updatedUser) {
+            return res.status(404).send("User to update not found");
         }
 
-        users[index] = user;
-        res.status(200).json(user);
+        res.status(200).json(updatedUser);
     }
 }
 
 const getById: RequestHandler = (req, res) => {
     const id = req.params.id;
 
-    const user = users.find(x => x.id === id);
+    const user = DAL.user.get(id);
 
     user ? res.status(200).json(user) : res.status(404).send("User not found");
 }
 
 const get: RequestHandler = (req, res) => {
-    const limit = req.params.limit;
-    const substr = req.params.substr;
+    const limit = req.query.limit;
+    const substr = req.query.substr;
 
-    const foundUsers = getAutoSuggestUsers(substr, limit ? +limit : null);
+    const foundUsers = DAL.user.getAutoSuggestUsers(substr, limit ? +limit : null);
 
-    foundUsers && foundUsers.length ? res.status(200).json(foundUsers) : res.status(404).send("Users not found");
+    res.status(200).json(foundUsers);
 }
 
-const softDelete: RequestHandler = (req, res) => {
+const remove: RequestHandler = (req, res) => {
     const id = req.params.id;
+    let deletedUser: false | User;
 
-    const user = users.find(x => x.id === id);
-
-    if (user) {
-        if (user.isDeleted) {
-            res.status(400).send("User already deleted");
-        } else {
-            user.isDeleted = true;
-            res.status(200).json(user);
+    try {
+        deletedUser = DAL.user.remove(id);
+    } catch (e) {
+        if (e.message === "Not found") {
+            return res.status(404).send("User not found");
         }
-    } else {
-        res.status(404).send("User not found");
+
+        return res.status(500).send(e.message);
     }
+
+    deletedUser ? res.status(200).json(deletedUser) : res.status(400).send("User is already deleted");
 }
 
 export const userController = {
     addOrUpdate,
-    softDelete,
+    remove,
     getById,
     get
 };
