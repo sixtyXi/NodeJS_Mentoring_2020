@@ -1,10 +1,12 @@
-export type User = {
-  id: string;
-  login: string;
-  password?: string;
-  age: number;
-  isDeleted: boolean;
-}
+import { User } from "../models/user";
+
+// export type User = {
+//   id: string;
+//   login: string;
+//   password?: string;
+//   age: number;
+//   isDeleted: boolean;
+// }
 
 export interface IEntityDAL<T> {
   add: (item: T) => T | false;
