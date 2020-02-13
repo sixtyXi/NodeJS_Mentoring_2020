@@ -9,7 +9,7 @@ import { DataService } from "../data-access";
 
 export class UserController {
     public static add: RequestHandler = async (req: ValidatedRequest<UserSchema>, res, next) => {
-        const user: User = User.build(req.body);
+        const user: User = User.build(req.body).get({ plain: true });
 
         try {
             const created = await DataService.create(user);
